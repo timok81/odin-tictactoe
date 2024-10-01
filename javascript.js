@@ -1,44 +1,52 @@
-//Create gameboard
+//Gameboard logic
 const gameBoard = (function () {
     let board = [];
     const columns = 3;
     const rows = 3;
-    //Create board, set properties
+    let number = 0;
+
     for (i = 0; i < rows; i++) {
         for (j = 0; j < columns; j++) {
-            board.push({ column: j, row: i, mark: '' });
+            board.push({ id: number, column: j, row: i, mark: '' });
+            number++;
         }
     };
     const getBoard = () => board;
+    const winningCombos = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+    const getWinningCombos = () => winningCombos;
 
-    //Place mark if space unoccupied
     const setBoardMark = (player, position) => {
         if (board[position].mark === '') {
             board[position].mark = player;
-            return 1;
+            return true;
         }
-        else { return 0; }
+        else { return false; }
     };
 
-    //Reset board
     const resetBoard = () => {
         for (i = 0; i < board.length; i++) { board[i].mark = ''; };
     };
 
-    return { getBoard, setBoardMark, resetBoard };
+    return { getBoard, setBoardMark, resetBoard, getWinningCombos };
 })();
 
 //Player factory
 function createPlayer(name) {
     this.name = name;
-    let score = 0;
     let token = 'X';
     const setToken = (symbol) => token = symbol;
     const getToken = () => token;
-    const getScore = () => score;
-    const increaseScore = () => score++;
 
-    return { name, setToken, getToken, getScore, increaseScore };
+    return { name, setToken, getToken };
 };
 
 //Game logic
@@ -46,7 +54,7 @@ const game = (function () {
     let players = [];
     let currentPlayer;
 
-    const setPlayers = (playerA = "Player 1", playerB = "Player 2") => {
+    const setPlayers = (playerA = 'Player 1', playerB = 'Player 2') => {
         players[0] = createPlayer(playerA);
         players[1] = createPlayer(playerB);
         players[0].setToken('X');
@@ -59,7 +67,7 @@ const game = (function () {
     const resetCurrentPlayer = () => currentPlayer = players[0];
 
     const placeMark = (currentPlayer, position) => {
-        if (gameBoard.setBoardMark(currentPlayer.name, position) === 1) {
+        if (gameBoard.setBoardMark(currentPlayer.name, position)) {
             checkForRoundWin(currentPlayer);
         }
     };
@@ -67,38 +75,19 @@ const game = (function () {
     //Check if player won after their move
     const checkForRoundWin = (player) => {
         const currentBoard = gameBoard.getBoard();
+        const winningCombos = gameBoard.getWinningCombos();
+        let isWon = 0;
 
-        if (
-            (currentBoard[0].mark === player.name &&
-                currentBoard[1].mark === player.name &&
-                currentBoard[2].mark === player.name) ||
-            (currentBoard[3].mark === player.name &&
-                currentBoard[4].mark === player.name &&
-                currentBoard[5].mark === player.name) ||
-            (currentBoard[6].mark === player.name &&
-                currentBoard[7].mark === player.name &&
-                currentBoard[8].mark === player.name) ||
-            (currentBoard[0].mark === player.name &&
-                currentBoard[3].mark === player.name &&
-                currentBoard[6].mark === player.name) ||
-            (currentBoard[1].mark === player.name &&
-                currentBoard[4].mark === player.name &&
-                currentBoard[7].mark === player.name) ||
-            (currentBoard[2].mark === player.name &&
-                currentBoard[5].mark === player.name &&
-                currentBoard[8].mark === player.name) ||
-            (currentBoard[0].mark === player.name &&
-                currentBoard[4].mark === player.name &&
-                currentBoard[8].mark === player.name) ||
-            (currentBoard[2].mark === player.name &&
-                currentBoard[4].mark === player.name &&
-                currentBoard[6].mark === player.name)
-        ) {
-            endRound(player);
-        }
-        else {
+        for (i = 0; i < winningCombos.length; i++) {
+            if ( winningCombos[i].filter((element) => currentBoard[element].mark === player.name).length === 3) {
+                isWon = 1;
+                endRound();
+            }
+        };
+
+        if (isWon === 0) {
             if (currentPlayer === players[0]) currentPlayer = players[1];
-            else if (currentPlayer === players[1]) currentPlayer = players[0];
+            else currentPlayer = players[0];
 
             if (gameBoard.getBoard().filter((square) => square.mark === '').length === 0) {
                 updateScreen.displayMessage(`Game has ended in a tie`);
@@ -111,9 +100,8 @@ const game = (function () {
     };
 
     //Win round logic
-    const endRound = (player) => {
-        player.increaseScore();
-        console.log(`${player.name} has won the round!`);
+    const endRound = () => {
+        console.log('end round was triggerd');
         updateScreen.displayMessage(`${currentPlayer.name} has won!`);
         updateScreen.removeEventListeners();
     }
@@ -123,13 +111,13 @@ const game = (function () {
 
 //Updates visuals on the page and handles interaction
 const updateScreen = (function () {
-    const infoDiv = document.querySelector(".gameresult");
-    const visualBoard = document.querySelector(".gameboard");
+    const infoDiv = document.querySelector('.gameresult');
+    const visualBoard = document.querySelector('.gameboard');
     const board = gameBoard.getBoard();
-    const newGameButton = document.querySelector(".newgamebutton");
-    const form = document.querySelector("form");
+    const newGameButton = document.querySelector('.newgamebutton');
+    const form = document.querySelector('form');
 
-    newGameButton.addEventListener("click", () => {
+    newGameButton.addEventListener('click', () => {
         const player1Name = form.elements.player1name.value;
         const player2Name = form.elements.player2name.value;
         gameBoard.resetBoard();
@@ -142,19 +130,26 @@ const updateScreen = (function () {
 
     const renderNewBoard = () => {
         for (square of board) {
-            const visualSquare = document.createElement("div");
-            visualSquare.classList.add("square");
+            const visualSquare = document.createElement('div');
+            visualSquare.classList.add('square');
             visualSquare.setAttribute('id', board.indexOf(square));
             visualBoard.appendChild(visualSquare);
         }
     }
 
     const addEventListeners = () => {
-        let allSquares = document.querySelectorAll(".square");
+        let allSquares = document.querySelectorAll('.square');
         allSquares.forEach(visualSquare => {
-            visualSquare.addEventListener("click", renderMark)
+            visualSquare.addEventListener('click', renderMark)
         });
     }
+
+    const removeEventListeners = () => {
+        let allSquares = document.querySelectorAll('.square');
+        allSquares.forEach(visualSquare => {
+            visualSquare.removeEventListener('click', renderMark)
+        });
+    };
 
     const renderMark = (e) => {
         if (e.target.innerText === '') {
@@ -164,20 +159,13 @@ const updateScreen = (function () {
     }
 
     const clearVisualBoard = () => {
-        let allSquares = document.querySelectorAll(".square");
+        let allSquares = document.querySelectorAll('.square');
         for (square of allSquares) { square.remove(); }
     }
 
     const displayMessage = (message) => {
         infoDiv.innerText = message;
     }
-
-    const removeEventListeners = () => {
-        let allSquares = document.querySelectorAll(".square");
-        allSquares.forEach(visualSquare => {
-            visualSquare.removeEventListener("click", renderMark)
-        });
-    };
 
     return { renderNewBoard, clearVisualBoard, removeEventListeners, addEventListeners, displayMessage };
 })();
@@ -186,4 +174,4 @@ const updateScreen = (function () {
 game.setPlayers();
 updateScreen.renderNewBoard();
 updateScreen.addEventListeners();
-updateScreen.displayGameStatus(game.getCurrentPlayer());
+updateScreen.displayMessage(`${game.getCurrentPlayer().name}'s turn`);
