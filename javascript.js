@@ -3,12 +3,10 @@ const gameBoard = (function () {
     let board = [];
     const columns = 3;
     const rows = 3;
-    let number = 0;
 
     for (i = 0; i < rows; i++) {
         for (j = 0; j < columns; j++) {
-            board.push({ id: number, column: j, row: i, mark: '' });
-            number++;
+            board.push({ , column: j, row: i, mark: '' });
         }
     };
     const getBoard = () => board;
