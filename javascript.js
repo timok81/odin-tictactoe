@@ -6,7 +6,7 @@ const gameBoard = (function () {
 
     for (i = 0; i < rows; i++) {
         for (j = 0; j < columns; j++) {
-            board.push({ , column: j, row: i, mark: '' });
+            board.push({column: j, row: i, mark: '' });
         }
     };
     const getBoard = () => board;
