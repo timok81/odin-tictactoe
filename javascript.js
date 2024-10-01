@@ -6,7 +6,7 @@ const gameBoard = (function () {
 
     for (i = 0; i < rows; i++) {
         for (j = 0; j < columns; j++) {
-            board.push({column: j, row: i, mark: '' });
+            board.push({ column: j, row: i, mark: '' });
         }
     };
     const getBoard = () => board;
@@ -77,7 +77,7 @@ const game = (function () {
         let isWon = 0;
 
         for (i = 0; i < winningCombos.length; i++) {
-            if ( winningCombos[i].filter((element) => currentBoard[element].mark === player.name).length === 3) {
+            if (winningCombos[i].filter((element) => currentBoard[element].mark === player.name).length === 3) {
                 isWon = 1;
                 endRound();
             }
@@ -150,9 +150,10 @@ const updateScreen = (function () {
     };
 
     const renderMark = (e) => {
-        if (e.target.innerText === '') {
+        const id = e.target.getAttribute('id');
+        if (gameBoard.getBoard()[id].mark === '') {
             e.target.innerText = game.getCurrentPlayer().getToken();
-            game.placeMark(game.getCurrentPlayer(), e.target.getAttribute('id'));
+            game.placeMark(game.getCurrentPlayer(), id);
         }
     }
 
